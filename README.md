@@ -279,14 +279,6 @@ MIT License — See `LICENSE` file
 
 ---
 
-## 👥 Contributors
-
-**Precorium Labs**
-- Built for Agentic Cinema: The Blockbuster Hackathon 2026
-- ClickHouse Partner Track
-
----
-
 ## 📞 Support
 
 For issues or questions:
