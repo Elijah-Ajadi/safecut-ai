@@ -1,0 +1,78 @@
+cat > data/legal_database.json << 'EOF'
+{
+  "talent": [
+    {
+      "id": "actor_001",
+      "name": "Sample Actor",
+      "contract_status": "CLEARED",
+      "territories": ["US", "EU", "ASIA"],
+      "expiry": "2027-12-31"
+    },
+    {
+      "id": "actor_002",
+      "name": "Another Actor",
+      "contract_status": "CLEARED",
+      "territories": ["US"],
+      "expiry": "2026-06-30"
+    },
+    {
+      "id": "actor_003",
+      "name": "Restricted Actor",
+      "contract_status": "FLAGGED",
+      "reason": "likeness_rights_expired",
+      "territories": [],
+      "expiry": "2024-12-31"
+    }
+  ],
+  "music": [
+    {
+      "id": "song_001",
+      "title": "Sample Song",
+      "composer": "Composer Name",
+      "license_type": "CLEARED",
+      "territories": ["US", "EU", "ASIA"],
+      "expiry": "2027-12-31"
+    },
+    {
+      "id": "song_002",
+      "title": "Limited License Track",
+      "composer": "Another Composer",
+      "license_type": "CLEARED",
+      "territories": ["US"],
+      "expiry": "2026-06-30"
+    },
+    {
+      "id": "song_003",
+      "title": "Unlicensed Track",
+      "composer": "Unknown",
+      "license_type": "FLAGGED",
+      "reason": "no_license_on_file",
+      "territories": [],
+      "expiry": null
+    }
+  ],
+  "trademarks": [
+    {
+      "id": "brand_001",
+      "name": "Sample Brand Logo",
+      "status": "CLEARED",
+      "allowed_contexts": ["any"],
+      "territories": ["US", "EU"]
+    },
+    {
+      "id": "brand_002",
+      "name": "Restricted Logo",
+      "status": "RESTRICTED",
+      "allowed_contexts": ["background_only"],
+      "territories": ["US"]
+    },
+    {
+      "id": "brand_003",
+      "name": "Competitor Logo",
+      "status": "BLOCKED",
+      "allowed_contexts": [],
+      "territories": []
+    }
+  ]
+}
+EOF
