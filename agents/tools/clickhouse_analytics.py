@@ -19,7 +19,7 @@ class ClickHouseAnalyticsTool:
                 params={'database': self.database, 'query': query},
                 auth=(self.user, self.password),
                 verify=False,
-                timeout=10
+                timeout=30  # Increased timeout
             )
             if response.status_code == 200:
                 return response.text.strip()
@@ -27,8 +27,8 @@ class ClickHouseAnalyticsTool:
                 print(f"Query error: {response.status_code} - {response.text}")
                 return ""
         except Exception as e:
-            print(f"ClickHouse query failed: {e}")
-            return ""
+            print(f"ClickHouse query warning: {e}")
+            return ""  # Fail silently for now
     
     def has_entity_been_flagged_before(self, entity_name: str, entity_type: str, days: int = 365) -> Dict:
         """Check if entity has been flagged before."""
@@ -58,11 +58,20 @@ class ClickHouseAnalyticsTool:
         
         return {"has_been_flagged": False, "flagged_count": 0, "projects_affected": 0, "risk_level": "LOW"}
     
-    def log_audit_trail(self, project_id: str, project_name: str, verdicts: List[Dict]) -> bool:
+    def log_audit_trail(self, project_id: str, project_name: str, verdicts: List) -> bool:
         """Log compliance verdicts to ClickHouse."""
         try:
             for verdict in verdicts:
-                entity = verdict["entity"]
+                # Handle both dict and Pydantic model
+                if hasattr(verdict, 'entity'):
+                    entity = verdict.entity
+                    final_verdict = verdict.final_verdict
+                    reasoning = verdict.legal_reasoning
+                else:
+                    entity = verdict["entity"]
+                    final_verdict = verdict["final_verdict"]
+                    reasoning = verdict["legal_reasoning"]
+                
                 insert_query = f"""
                 INSERT INTO compliance_audit VALUES (
                     '{project_id}',
@@ -71,14 +80,14 @@ class ClickHouseAnalyticsTool:
                     '{entity.entity_type}',
                     '{entity.entity_name}',
                     '{entity.timestamp}',
-                    '{verdict["final_verdict"]}',
+                    '{final_verdict}',
                     {entity.confidence},
-                    '{verdict["legal_reasoning"]}',
+                    '{reasoning}',
                     'US'
                 )
                 """
                 self._execute_query(insert_query)
             return True
         except Exception as e:
-            print(f"Error logging to ClickHouse: {e}")
+            print(f"Warning: Error logging to ClickHouse: {e}")
             return False

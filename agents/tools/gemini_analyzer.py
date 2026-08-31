@@ -9,14 +9,8 @@ class GeminiVideoAnalyzer:
     def analyze_video(self, video_path: str) -> Dict:
         """
         Mock video analysis.
-        On Day 3, replace with real Gemini Vision API call.
+        Returns different results based on video filename for testing.
         """
-        # TODO: Replace with real Gemini Vision API
-        # from google.cloud import aiplatform
-        # model = GenerativeModel("gemini-3-flash-001")
-        # response = model.generate_content([video_file, prompt])
-        
-        # For now, return mock data based on video path
         mock_data = {
             "actors": [
                 {"name": "Sample Actor", "timestamp": "00:15", "confidence": 0.95, "type": "actor"},
@@ -33,5 +27,14 @@ class GeminiVideoAnalyzer:
             ],
             "video_duration": "02:15"
         }
+        
+        # Test different scenarios based on filename
+        if "flagged" in video_path.lower():
+            mock_data["actors"].append(
+                {"name": "Restricted Actor", "timestamp": "00:20", "confidence": 0.90, "type": "actor"}
+            )
+            mock_data["music"].append(
+                {"name": "Unlicensed Track", "timestamp": "01:30", "confidence": 0.88, "type": "music"}
+            )
         
         return mock_data

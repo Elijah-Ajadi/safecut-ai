@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeCut AI - Video Compliance Analyzer</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 700px;
+            padding: 40px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus, input[type="file"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .upload-area:hover {
+            background: #f8f9ff;
+        }
+        
+        .upload-area.dragover {
+            background: #f0f2ff;
+            border-color: #764ba2;
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .results {
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .status-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .status-box.flagged {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .status-badge {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        .status-text {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .status-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .summary-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .summary-label {
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        
+        .summary-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .summary-value.clearance {
+            color: #667eea;
+        }
+        
+        .entities-section {
+            margin-top: 25px;
+        }
+        
+        .entities-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .entity-card {
+            background: #f8f9fa;
+            padding: 18px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 5px solid #28a745;
+            transition: all 0.3s;
+        }
+        
+        .entity-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateX(4px);
+        }
+        
+        .entity-card.flagged {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+        
+        .entity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .entity-name {
+            font-weight: 700;
+            font-size: 16px;
+            color: #333;
+        }
+        
+        .entity-type {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #e7f3ff;
+            color: #0066cc;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .entity-type.actor { background: #ffe7f0; color: #c2185b; }
+        .entity-type.music { background: #fff3e0; color: #e65100; }
+        .entity-type.logo { background: #f3e5f5; color: #7b1fa2; }
+        
+        .entity-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .entity-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .entity-reasoning {
+            font-size: 13px;
+            color: #666;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .entity-verdict {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        .entity-verdict.cleared {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .entity-verdict.flagged {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            margin: 40px 0;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            display: none;
+            border-left: 4px solid #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 SafeCut AI</h1>
+        <p class="subtitle">Video Compliance Analytics Engine</p>
+        
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="projectName">Project Name</label>
+                <input type="text" id="projectName" name="project_name" placeholder="e.g., My Film" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="projectId">Project ID</label>
+                <input type="text" id="projectId" name="project_id" placeholder="e.g., proj_001" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Upload Video</label>
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="videoFile" name="video" accept="video/*" required style="display:none">
+                    <div id="uploadText">📹 Click to select or drag video file</div>
+                </div>
+            </div>
+            
+            <button type="submit" id="analyzeBtn">🔍 Analyze Video</button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p><strong>Analyzing with Gemini Vision...</strong></p>
+            <p style="font-size: 12px; color: #999; margin-top: 8px;">This may take a minute</p>
+        </div>
+        
+        <div class="error" id="error"></div>
+        
+        <div class="results" id="results">
+            <!-- Status Box -->
+            <div id="statusContainer"></div>
+            
+            <!-- Summary Grid -->
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <div class="summary-label">Total Entities</div>
+                    <div class="summary-value" id="totalEntities">-</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Clearance Rate</div>
+                    <div class="summary-value clearance" id="clearanceRate">-</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Cleared</div>
+                    <div class="summary-value" id="clearedCount" style="color: #28a745;">-</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Flagged</div>
+                    <div class="summary-value" id="flaggedCount" style="color: #dc3545;">-</div>
+                </div>
+            </div>
+            
+            <!-- Entities List -->
+            <div class="entities-section">
+                <div class="entities-header">🎬 Detected Entities</div>
+                <div id="entitiesList"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const form = document.getElementById('uploadForm');
+        const uploadArea = document.getElementById('uploadArea');
+        const videoFile = document.getElementById('videoFile');
+        const uploadText = document.getElementById('uploadText');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const error = document.getElementById('error');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        
+        // Drag and drop
+        uploadArea.addEventListener('click', () => videoFile.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            videoFile.files = e.dataTransfer.files;
+            updateUploadText();
+        });
+        
+        videoFile.addEventListener('change', updateUploadText);
+        
+        function updateUploadText() {
+            if (videoFile.files.length > 0) {
+                uploadText.textContent = `✓ ${videoFile.files[0].name}`;
+            } else {
+                uploadText.textContent = '📹 Click to select or drag video file';
+            }
+        }
+        
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            error.style.display = 'none';
+            results.style.display = 'none';
+            loading.style.display = 'block';
+            analyzeBtn.disabled = true;
+            
+            const formData = new FormData(form);
+            
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Analysis failed');
+                }
+                
+                displayResults(data);
+            } catch (err) {
+                error.textContent = `❌ Error: ${err.message}`;
+                error.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+                analyzeBtn.disabled = false;
+            }
+        });
+        
+        function displayResults(data) {
+            const report = data.report;
+            
+            // Status Box
+            const statusContainer = document.getElementById('statusContainer');
+            const isFlagged = data.status === 'FLAGGED';
+            const statusBox = document.createElement('div');
+            statusBox.className = `status-box ${isFlagged ? 'flagged' : ''}`;
+            statusBox.innerHTML = `
+                <div class="status-badge">${isFlagged ? '⚠️' : '✅'}</div>
+                <div class="status-text">${data.status}</div>
+                <div class="status-subtitle">${isFlagged ? 'Compliance issues detected' : 'All content cleared for use'}</div>
+            `;
+            statusContainer.innerHTML = '';
+            statusContainer.appendChild(statusBox);
+            
+            // Stats
+            document.getElementById('totalEntities').textContent = report.risk_summary.total_entities;
+            document.getElementById('clearedCount').textContent = report.risk_summary.cleared;
+            document.getElementById('flaggedCount').textContent = report.risk_summary.flagged;
+            document.getElementById('clearanceRate').textContent = `${Math.round(data.clearance_rate)}%`;
+            
+            // Entities
+            const entitiesList = document.getElementById('entitiesList');
+            entitiesList.innerHTML = '';
+            
+            if (report.entities_detected.length === 0) {
+                entitiesList.innerHTML = '<p style="color: #999;">No entities detected</p>';
+                results.style.display = 'block';
+                return;
+            }
+            
+            report.entities_detected.forEach(entity => {
+                const isFlagged = entity.final_verdict === 'FLAGGED';
+                const typeIcons = {
+                    'actor': '🎭',
+                    'music': '🎵',
+                    'logo': '🏢'
+                };
+                
+                const card = document.createElement('div');
+                card.className = `entity-card ${isFlagged ? 'flagged' : ''}`;
+                card.innerHTML = `
+                    <div class="entity-header">
+                        <span class="entity-name">${typeIcons[entity.entity.entity_type] || '•'} ${entity.entity.entity_name}</span>
+                        <span class="entity-type ${entity.entity.entity_type}">${entity.entity.entity_type}</span>
+                    </div>
+                    <div class="entity-meta">
+                        <span>⏱️ ${entity.entity.timestamp}</span>
+                        <span>📊 ${(entity.entity.confidence * 100).toFixed(0)}% confidence</span>
+                        <span>🎯 ${entity.preliminary_verdict}</span>
+                    </div>
+                    <div class="entity-reasoning">💡 ${entity.legal_reasoning}</div>
+                    <div>
+                        <span class="entity-verdict ${isFlagged ? 'flagged' : 'cleared'}">${entity.final_verdict}</span>
+                        ${entity.historical_risk ? `<span style="margin-left: 10px; font-size: 12px; color: #666;">Risk: ${entity.historical_risk}</span>` : ''}
+                    </div>
+                `;
+                entitiesList.appendChild(card);
+            });
+            
+            results.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

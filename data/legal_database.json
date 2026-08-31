@@ -1,4 +1,3 @@
-cat > data/legal_database.json << 'EOF'
 {
   "talent": [
     {
@@ -75,4 +74,3 @@ cat > data/legal_database.json << 'EOF'
     }
   ]
 }
-EOF
